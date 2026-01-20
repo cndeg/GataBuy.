@@ -43,12 +43,7 @@
       gap: 15px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    nav button {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-    }
+    nav button { background: none; border: none; cursor: pointer; font-weight: bold; }
 
     .banner {
       background: linear-gradient(90deg,#3483fa,#6ca6ff);
@@ -76,6 +71,7 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
       transition: transform 0.2s;
       position: relative;
+      cursor: pointer;
     }
     .product:hover { transform: translateY(-5px); }
 
@@ -109,6 +105,37 @@
       color: #555;
       background: white;
     }
+
+    /* MODAL */
+    .modal-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 50;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal {
+      background: white;
+      width: 80%;
+      max-width: 900px;
+      border-radius: 10px;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      position: relative;
+    }
+    .modal img { width: 100%; height: 300px; object-fit: contain; }
+    .close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      cursor: pointer;
+      font-size: 20px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -126,55 +153,62 @@
   <button onclick="filtrar('random')">Random</button>
 </nav>
 
-<div class="banner">
-  GataBuy 🔥 El marketplace más mentiroso de Internet
-</div>
+<div class="banner">GataBuy 🔥 El marketplace más mentiroso de Internet</div>
 
 <main>
   <div id="results" class="products"></div>
 </main>
 
-<footer>
-  Este sitio es una simulación ficticia. No vende productos reales.
-</footer>
+<footer>Este sitio es una simulación ficticia. No vende productos reales.</footer>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg" onclick="cerrarModal(event)">
+  <div class="modal">
+    <div class="close" onclick="cerrarModal(event)">✖</div>
+    <img id="mImg" />
+    <div>
+      <h2 id="mNombre"></h2>
+      <div class="price" id="mPrecio"></div>
+      <div class="envio">Envío gratis (simulado)</div>
+      <p id="mDesc"></p>
+      <p class="extra" id="mExtra"></p>
+      <button style="margin-top:10px;">Agregar al carrito (fake)</button>
+    </div>
+  </div>
+</div>
 
 <script>
-  function codigoRandom() {
-    const letras = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    return letras[Math.floor(Math.random()*letras.length)] + Math.floor(Math.random()*900+100);
-  }
+  function codigoRandom(){const l='ABCDEFGHIJKLMNOPQRSTUVWXYZ';return l[Math.floor(Math.random()*l.length)]+Math.floor(Math.random()*900+100)}
 
-  const productos = [
-    ...Array.from({length:12}).map(()=>({cat:'celu', nombre:`GataPhone ${codigoRandom()} Ultra Max`, precio:Math.floor(Math.random()*200000)+150000})),
-    ...Array.from({length:8}).map(()=>({cat:'gaming', nombre:`Teclado Gamer Fantasma`, precio:Math.floor(Math.random()*80000)+30000})),
-    ...Array.from({length:6}).map(()=>({cat:'gato', nombre:`Rascador Premium para Gatos CEO`, precio:Math.floor(Math.random()*50000)+20000})),
-    ...Array.from({length:6}).map(()=>({cat:'random', nombre:`Producto Inútil Misterioso`, precio:Math.floor(Math.random()*40000)+10000}))
+  const productos=[
+    ...Array.from({length:10}).map(()=>({cat:'celu',nombre:`GataPhone ${codigoRandom()} Ultra Max`,desc:'Celular ficticio de alta gama ideal para aparentar que tenés el último modelo.',precio:Math.floor(Math.random()*200000)+150000})),
+    ...Array.from({length:6}).map(()=>({cat:'gaming',nombre:'Teclado Gamer RGB Fantasma',desc:'Accesorio gamer diseñado para mejorar tu setup, no tu habilidad.',precio:Math.floor(Math.random()*80000)+30000})),
+    ...Array.from({length:6}).map(()=>({cat:'gato',nombre:'Rascador Premium para Gatos CEO',desc:'Producto pensado para que tu gato destruya esto y no el sillón.',precio:Math.floor(Math.random()*50000)+20000})),
+    ...Array.from({length:6}).map(()=>({cat:'random',nombre:'Producto Inútil Misterioso',desc:'Objeto cuyo propósito no está del todo claro, pero alguien lo necesita.',precio:Math.floor(Math.random()*40000)+10000}))
   ];
 
   function render(lista){
-    const c=document.getElementById('results');
-    c.innerHTML='';
+    const c=document.getElementById('results');c.innerHTML='';
     lista.forEach(p=>{
-      c.innerHTML+=`
-      <div class="product">
-        <div class="badge">OFERTA</div>
-        <img src="https://via.placeholder.com/200x150?text=${p.cat}" />
-        <h4>${p.nombre}</h4>
-        <div class="price">$ ${p.precio.toLocaleString('es-AR')}</div>
-        <div class="envio">Envío gratis (simulado)</div>
-        <div class="extra">Lo compraron ${Math.floor(Math.random()*500)} gatos</div>
-      </div>`;
+      const d=document.createElement('div');d.className='product';
+      d.innerHTML=`<div class="badge">OFERTA</div><img src="https://via.placeholder.com/200x150?text=${p.cat}"><h4>${p.nombre}</h4><div class="price">$ ${p.precio.toLocaleString('es-AR')}</div><div class="envio">Envío gratis (simulado)</div><div class="extra">Lo compraron ${Math.floor(Math.random()*500)} gatos</div>`;
+      d.onclick=()=>abrirModal(p);
+      c.appendChild(d);
     });
   }
 
-  function buscar(){
-    const q=document.getElementById('search').value.toLowerCase();
-    render(productos.filter(p=>p.nombre.toLowerCase().includes(q)||p.cat.includes(q)));
+  function abrirModal(p){
+    document.getElementById('modalBg').style.display='flex';
+    document.getElementById('mImg').src=`https://via.placeholder.com/400x300?text=${p.cat}`;
+    document.getElementById('mNombre').innerText=p.nombre;
+    document.getElementById('mPrecio').innerText='$ '+p.precio.toLocaleString('es-AR');
+    document.getElementById('mDesc').innerText=p.desc;
+    document.getElementById('mExtra').innerText='Quedan '+Math.floor(Math.random()*5+1)+' unidades (mentira) · Garantía ficticia 12 meses';
   }
 
-  function filtrar(cat){
-    render(productos.filter(p=>p.cat===cat));
-  }
+  function cerrarModal(e){ if(e.target.id==='modalBg'||e.target.className==='close') document.getElementById('modalBg').style.display='none'; }
+  function buscar(){const q=document.getElementById('search').value.toLowerCase();render(productos.filter(p=>p.nombre.toLowerCase().includes(q)||p.cat.includes(q)))}
+  function filtrar(cat){render(productos.filter(p=>p.cat===cat))}
 
   render(productos);
 </script>
